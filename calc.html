@@ -6,19 +6,28 @@
     <title>מחשבון איזון פנסיוני</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        :root {
+            --background-color: #f8f9fa;
+            --container-margin-top: 50px;
+            --result-table-bg: #ffffff;
+            --border-color: #dee2e6;
+            --border-radius: 8px;
+            --padding: 20px;
+            --margin-top: 20px;
+        }
         body {
-            background-color: #f8f9fa;
+            background-color: var(--background-color);
             font-family: Arial, sans-serif;
         }
         .container {
-            margin-top: 50px;
+            margin-top: var(--container-margin-top);
         }
         .result-table {
-            background-color: #ffffff;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 20px;
+            background-color: var(--result-table-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: var(--padding);
+            margin-top: var(--margin-top);
         }
         .table th, .table td {
             text-align: center;
@@ -28,41 +37,41 @@
 <body>
     <div class="container">
         <h1 class="text-center mb-4">מחשבון איזון פנסיוני</h1>
-        <form id="pensionCalculator">
+        <form id="pensionCalculator" onsubmit="event.preventDefault(); calculatePension();">
             <h3>נתוני צד א' וצד ב'</h3>
             <div class="row mb-3">
                 <div class="col">
                     <label for="genderA" class="form-label">מין צד א'</label>
-                    <select id="genderA" class="form-select" required>
+                    <select id="genderA" class="form-select" aria-label="מין צד א'" required>
                         <option value="male" selected>גבר</option>
                         <option value="female">אישה</option>
                     </select>
                 </div>
                 <div class="col">
                     <label for="ageA" class="form-label">גיל צד א'</label>
-                    <input type="number" id="ageA" class="form-control" value="45" required>
+                    <input type="number" id="ageA" class="form-control" aria-label="גיל צד א'" value="45" min="0" required>
                 </div>
                 <div class="col">
                     <label for="savingsA" class="form-label">סכום נצבר צד א' (ש"ח)</label>
-                    <input type="number" id="savingsA" class="form-control" value="2000" required>
+                    <input type="number" id="savingsA" class="form-control" aria-label="סכום נצבר צד א'" value="2000" min="0" required>
                 </div>
             </div>
 
             <div class="row mb-3">
                 <div class="col">
                     <label for="genderB" class="form-label">מין צד ב'</label>
-                    <select id="genderB" class="form-select" required>
+                    <select id="genderB" class="form-select" aria-label="מין צד ב'" required>
                         <option value="male">גבר</option>
                         <option value="female" selected>אישה</option>
                     </select>
                 </div>
                 <div class="col">
                     <label for="ageB" class="form-label">גיל צד ב'</label>
-                    <input type="number" id="ageB" class="form-control" value="42" required>
+                    <input type="number" id="ageB" class="form-control" aria-label="גיל צד ב'" value="42" min="0" required>
                 </div>
                 <div class="col">
                     <label for="savingsB" class="form-label">סכום נצבר צד ב' (ש"ח)</label>
-                    <input type="number" id="savingsB" class="form-control" value="2000" required>
+                    <input type="number" id="savingsB" class="form-control" aria-label="סכום נצבר צד ב'" value="2000" min="0" required>
                 </div>
             </div>
 
@@ -70,19 +79,19 @@
             <div class="row mb-3">
                 <div class="col">
                     <label for="marriageDuration" class="form-label">משך הנישואין (בחודשים)</label>
-                    <input type="number" id="marriageDuration" class="form-control" value="120" required>
+                    <input type="number" id="marriageDuration" class="form-control" aria-label="משך הנישואין" value="120" min="0" required>
                 </div>
                 <div class="col">
                     <label for="conversionFactor" class="form-label">מקדם המרה</label>
-                    <input type="number" id="conversionFactor" class="form-control" value="200" required>
+                    <input type="number" id="conversionFactor" class="form-control" aria-label="מקדם המרה" value="200" min="0" required>
                 </div>
                 <div class="col">
                     <label for="interestRate" class="form-label">שיעור היוון (%)</label>
-                    <input type="number" id="interestRate" class="form-control" value="3" required>
+                    <input type="number" id="interestRate" class="form-control" aria-label="שיעור היוון" value="3" min="0" step="0.01" required>
                 </div>
             </div>
 
-            <button type="button" class="btn btn-primary w-100" onclick="calculatePension()">חשב</button>
+            <button type="submit" class="btn btn-primary w-100">חשב</button>
         </form>
 
         <div id="results" class="result-table d-none">
@@ -95,8 +104,7 @@
                         <th>צד ב'</th>
                     </tr>
                 </thead>
-                <tbody id="resultBody">
-                </tbody>
+                <tbody id="resultBody"></tbody>
             </table>
         </div>
     </div>
@@ -109,7 +117,12 @@
             const conversionFactor = parseFloat(document.getElementById('conversionFactor').value);
             const interestRate = parseFloat(document.getElementById('interestRate').value) / 100;
 
-            const partA = marriageDuration / (30 * 12); // יחס מתוך תקופת עבודה משוערת (30 שנה)
+            if (isNaN(savingsA) || isNaN(savingsB) || isNaN(marriageDuration) || isNaN(conversionFactor) || isNaN(interestRate)) {
+                alert("אנא מלא את כל השדות כראוי.");
+                return;
+            }
+
+            const partA = marriageDuration / (30 * 12);
             const partB = marriageDuration / (30 * 12);
 
             const monthlyPensionA = savingsA / conversionFactor;
@@ -122,8 +135,8 @@
             resultBody.innerHTML = `
                 <tr>
                     <td>סכום נצבר (ש"ח)</td>
-                    <td>${savingsA}</td>
-                    <td>${savingsB}</td>
+                    <td>${savingsA.toFixed(2)}</td>
+                    <td>${savingsB.toFixed(2)}</td>
                 </tr>
                 <tr>
                     <td>יחס מתוך תקופת הנישואין (%)</td>
